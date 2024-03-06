@@ -1,0 +1,654 @@
+Program.Sub.ScreenSU.Start
+gui.SS_Form1..create
+gui.SS_Form1..caption("BOM Shipping Components")
+gui.SS_Form1..size(8775,7560)
+gui.SS_Form1..position(0,0)
+gui.SS_Form1..event(unload,ss_form1_unload)
+gui.SS_Form1..alwaysontop(False)
+gui.SS_Form1..fontname("Arial")
+gui.SS_Form1..fontsize(8)
+gui.SS_Form1..forecolor(0)
+gui.SS_Form1..fontstyle(,,,,)
+gui.SS_Form1..BackColor(-2147483633)
+gui.SS_Form1..controlbox(True)
+gui.SS_Form1..maxbutton(False)
+gui.SS_Form1..minbutton(False)
+gui.SS_Form1..mousepointer(0)
+gui.SS_Form1..moveable(True)
+gui.SS_Form1..sizeable(False)
+gui.SS_Form1..ShowInTaskBar(True)
+gui.SS_Form1..titlebar(True)
+gui.SS_Form1.lbl_txtOrder.create(label,"Sales Order",True,1800,200,1,100,135,True,0,Arial,8,-2147483633,0)
+gui.SS_Form1.txtOrder.create(textbox,"",True,1800,330,0,100,335,True,0,Arial,8,16777215,1)
+gui.SS_Form1.cmd_txtOrder.create(button)
+gui.SS_Form1.cmd_txtOrder.caption("^")
+gui.SS_Form1.cmd_txtOrder.visible(True)
+gui.SS_Form1.cmd_txtOrder.size(330,330)
+gui.SS_Form1.cmd_txtOrder.zorder(0)
+gui.SS_Form1.cmd_txtOrder.position(1985,335)
+gui.SS_Form1.cmd_txtOrder.enabled(True)
+gui.SS_Form1.cmd_txtOrder.fontname("Arial")
+gui.SS_Form1.cmd_txtOrder.fontsize(8)
+gui.SS_Form1.cmd_txtOrder.event(click,cmd_txtorder_click)
+gui.SS_Form1.lbl_txtLine.create(label,"Sales Order Line",True,1800,200,1,2455,135,True,0,Arial,8,-2147483633,0)
+gui.SS_Form1.txtLine.create(textbox,"",True,1800,330,0,2455,335,True,0,Arial,8,16777215,1)
+gui.SS_Form1.cmd_txtLine.create(button)
+gui.SS_Form1.cmd_txtLine.caption("^")
+gui.SS_Form1.cmd_txtLine.visible(True)
+gui.SS_Form1.cmd_txtLine.size(330,330)
+gui.SS_Form1.cmd_txtLine.zorder(0)
+gui.SS_Form1.cmd_txtLine.position(4340,335)
+gui.SS_Form1.cmd_txtLine.enabled(True)
+gui.SS_Form1.cmd_txtLine.fontname("Arial")
+gui.SS_Form1.cmd_txtLine.fontsize(8)
+gui.SS_Form1.cmd_txtLine.event(click,cmd_txtline_click)
+gui.SS_Form1.gsfgComp.create(gsflexgrid)
+gui.SS_Form1.gsfgComp.FixedRows(0)
+gui.SS_Form1.gsfgComp.FixedCols(0)
+gui.SS_Form1.gsfgComp.visible(True)
+gui.SS_Form1.gsfgComp.size(8460,5760)
+gui.SS_Form1.gsfgComp.zorder(0)
+gui.SS_Form1.gsfgComp.position(100,800)
+gui.SS_Form1.gsfgComp.enabled(True)
+gui.SS_Form1.cmdSave.create(button)
+gui.SS_Form1.cmdSave.caption("Save")
+gui.SS_Form1.cmdSave.visible(True)
+gui.SS_Form1.cmdSave.size(855,375)
+gui.SS_Form1.cmdSave.zorder(0)
+gui.SS_Form1.cmdSave.position(115,6650)
+gui.SS_Form1.cmdSave.enabled(True)
+gui.SS_Form1.cmdSave.fontname("Arial")
+gui.SS_Form1.cmdSave.fontsize(8)
+gui.SS_Form1.cmdSave.event(click,cmdsave_click)
+gui.SS_Form1.cmdLoad.create(button)
+gui.SS_Form1.cmdLoad.caption("Load")
+gui.SS_Form1.cmdLoad.visible(True)
+gui.SS_Form1.cmdLoad.size(855,375)
+gui.SS_Form1.cmdLoad.zorder(0)
+gui.SS_Form1.cmdLoad.position(4770,315)
+gui.SS_Form1.cmdLoad.enabled(True)
+gui.SS_Form1.cmdLoad.fontname("Arial")
+gui.SS_Form1.cmdLoad.fontsize(8)
+gui.SS_Form1.cmdLoad.event(click,cmdload_click)
+
+
+
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Variable.UDT.uShipComp.Define("Part",String)
+Variable.UDT.uShipComp.Define("Qty_Needed",Float)
+Variable.UDT.uShipComp.Define("Qty_Shipped",Float)
+Variable.UDT.uShipComp.Define("Qty_Balance",Float)
+Variable.UDT.uShipComp.Define("Ship_Qty",Float)
+Variable.UDT.uShipComp.Define("Description",String)
+Variable.UDT.uShipComp.Define("UM",String)
+Variable.uGlobal.uShipComp.Declare("uShipComp")
+
+Program.Sub.Preflight.End
+
+
+Program.Sub.Main.Start
+F.ODBC.Connection!con.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+
+F.Intrinsic.Control.CallSub(Gridtitle)
+F.Intrinsic.Control.CallSub(Gridstyle)
+Gui.SS_Form1..Show
+
+Program.Sub.Main.End
+
+
+program.sub.ss_form1_unload.start
+F.ODBC.Connection!con.Close
+F.Intrinsic.Control.End
+
+program.sub.ss_form1_unload.end
+
+
+Program.Sub.GridTitle.Start
+F.Intrinsic.Control.SetErrorHandler("GridTitle_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+Gui.SS_Form1.gsfgComp.Rows(2)
+Gui.SS_Form1.gsfgComp.FixedRows(1)
+Gui.SS_Form1.gsfgComp.Cols(5)
+Gui.SS_Form1.gsfgComp.TextMatrix(0,0,"Part")
+Gui.SS_Form1.gsfgComp.ColWidth(0,2200)
+Gui.SS_Form1.gsfgComp.TextMatrix(1,0,"Quantity Needed")
+Gui.SS_Form1.gsfgComp.ColWidth(1,1500)
+Gui.SS_Form1.gsfgComp.TextMatrix(2,0,"Quantity Shipped")
+Gui.SS_Form1.gsfgComp.ColWidth(2,1500)
+Gui.SS_Form1.gsfgComp.TextMatrix(3,0,"Quantity Balance")
+Gui.SS_Form1.gsfgComp.ColWidth(3,1500)
+Gui.SS_Form1.gsfgComp.TextMatrix(4,0,"Ship Quantity")
+Gui.SS_Form1.gsfgComp.ColWidth(4,1500)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("GridTitle_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3365Ship_Component.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Ss_form1_unload)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.GridTitle.End
+
+
+Program.Sub.GridStyle.Start
+F.Intrinsic.Control.SetErrorHandler("GridStyle_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.iCol.Declare(Long)
+
+Gui.SS_Form1.gsfgComp.BuildStyle(1,0,"type","locked",True)
+Gui.SS_Form1.gsfgComp.BuildStyle(1,0,"format","alignment",2)
+Gui.SS_Form1.gsfgComp.BuildStyle(1,0,"fontstyle","bold",False)
+V.Local.iCol.Set(1)
+F.Intrinsic.Control.DoUntil(V.Local.iCol,>,3)
+	Gui.SS_Form1.gsfgComp.BuildStyle(1,V.Local.iCol,"type","locked",True)
+	Gui.SS_Form1.gsfgComp.BuildStyle(1,V.Local.iCol,"format","alignment",6)
+	Gui.SS_Form1.gsfgComp.BuildStyle(1,V.Local.iCol,"fontstyle","bold",False)
+	F.Intrinsic.Math.Add(V.Local.iCol,1,V.Local.iCol)
+F.Intrinsic.Control.Loop
+Gui.SS_Form1.gsfgComp.BuildStyle(1,4,"type","locked",False)
+Gui.SS_Form1.gsfgComp.BuildStyle(1,4,"format","alignment",6)
+Gui.SS_Form1.gsfgComp.BuildStyle(1,4,"fontstyle","bold",False)
+Gui.SS_Form1.gsfgComp.BuildStyle(1,4,"format","numeric",True)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("GridStyle_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3365Ship_Component.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Ss_form1_unload)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.GridStyle.End
+
+
+Program.Sub.GridLoad.Start
+F.Intrinsic.Control.SetErrorHandler("GridLoad_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sSql.Declare(String)
+V.Local.sFilePath.Declare(String)
+V.Local.sBOMLoadFile.Declare(String)
+V.Local.sBOM.Declare(String)
+V.Local.sBOMSeq.Declare(String)
+V.Local.i.Declare(Long)
+V.Local.iUB.Declare(Long)
+V.Local.sParent.Declare(String)
+V.Local.fOrderQty.Declare(Float)
+V.Local.sZBin.Declare(String)
+
+Gui.SS_Form1..Enabled(False)
+V.uGlobal.uShipComp.Redim(-1,-1)
+F.Intrinsic.Control.CallSub(Gridclear)
+F.Intrinsic.String.Concat("Select PART, QTY_ORDERED from V_ORDER_LINES where ORDER_NO = '",V.Screen.SS_Form1!txtOrder.Text,"' and RECORD_NO = '",V.Screen.SS_Form1!txtLine.Text,"'",V.Local.sSql)
+F.ODBC.Connection!con.OpenLocalRecordsetRO("rst",V.Local.sSql)
+F.Intrinsic.Control.If(V.ODBC.con!rst.EOF,<>,True)
+	V.Local.sParent.Set(V.ODBC.con!rst.FieldValTrim!PART)
+	V.Local.fOrderQty.Set(V.ODBC.con!rst.FieldValFloat!QTY_ORDERED)
+	F.ODBC.con!rst.Close
+	F.Intrinsic.String.Concat("Select PARENT from V_BOM_MSTR where PARENT = '",V.Local.sParent,"'",V.Local.sSql)
+	F.ODBC.Connection!con.OpenLocalRecordsetRO("rst",V.Local.sSql)
+	F.Intrinsic.Control.If(V.ODBC.con!rst.EOF,<>,True)
+		F.ODBC.con!rst.Close
+		'Creating export file to explode BOM
+		F.Intrinsic.String.Concat(V.System.Temp,"\GSS\BOM",V.Caller.Terminal,".txt",V.Local.sFilePath)
+		F.Intrinsic.String.Concat("0",V.Ambient.Tab,V.Local.sParent,V.Ambient.Tab,V.Local.sFilePath,V.Local.sBOMLoadFile)
+		F.Intrinsic.File.String2File(V.Local.sFilePath,V.Local.sBOMLoadFile)
+		F.Global.General.CallWrapperSync(410000,V.Local.sFilePath)
+		'Reading load file to get file name of exploded file
+		F.Intrinsic.File.File2String(V.Local.sFilePath,V.Local.sBOMLoadFile)
+		F.Intrinsic.String.Split(V.Local.sBOMLoadFile,V.Ambient.NewLine,V.Local.sBOMLoadFile)
+		F.Intrinsic.String.Split(V.Local.sBOMLoadFile,V.Ambient.Tab,V.Local.sBOMLoadFile)
+		'Loading exploded BOM file
+		F.Intrinsic.File.File2String(V.Local.sBOMLoadFile(3).Trim,V.Local.sBOM)
+		F.Intrinsic.String.Split(V.Local.sBOM,V.Ambient.NewLine,V.Local.sBOM)
+		'Looping through each line in BOM file
+		F.Intrinsic.Control.For(V.Local.i,7,V.Local.sBOM.UBound,1)
+			F.Intrinsic.Control.If(V.Local.sBOM(V.Local.i),<>,"")
+				F.Intrinsic.String.Split(V.Local.sBOM(V.Local.i),"|~|",V.Local.sBOMSeq)
+				'Checking to see if shipping component flag is set
+				F.Intrinsic.String.Concat("Select Comp_Flag from GCG_3365Ship_Comp_Flag where BOM_Parent = '",V.Local.sParent,"' and BOM_Part = '",V.Local.sBOMSeq(2).Trim,"'",V.Local.sSql)
+				F.ODBC.Connection!con.OpenLocalRecordsetRO("rst",V.Local.sSql)
+				F.Intrinsic.Control.If(V.ODBC.con!rst.EOF,<>,True)
+					F.Intrinsic.Control.If(V.ODBC.con!rst.FieldVal!Comp_Flag,=,True)
+	 					F.ODBC.con!rst.Close
+						F.Intrinsic.Control.If(V.uGlobal.uShipComp.UBound,=,-1)
+							V.uGlobal.uShipComp.Redim(0,0)
+							V.Local.iUB.Set(-1)
+						F.Intrinsic.Control.EndIf
+						F.Intrinsic.Math.Add(V.Local.iUB,1,V.Local.iUB)
+						V.uGlobal.uShipComp.RedimPreserve(0,V.Local.iUB)
+						V.uGlobal.uShipComp(V.Local.iUB)!Part.Set(V.Local.sBOMSeq(2).Trim)
+						F.Intrinsic.String.Concat("Select DESCRIPTION from V_INVENTORY_MSTR where PART = '",V.uGlobal.uShipComp(V.Local.iUB)!Part,"'",V.Local.sSql)
+						F.ODBC.Connection!con.OpenLocalRecordsetRO("rstInv",V.Local.sSql)
+						F.Intrinsic.Control.If(V.ODBC.con!rstInv.EOF,=,True)
+							V.uGlobal.uShipComp(V.Local.iUB)!Description.Set("")
+						F.Intrinsic.Control.Else
+							V.uGlobal.uShipComp(V.Local.iUB)!Description.Set(V.ODBC.con!rstInv.FieldValTrim!DESCRIPTION)
+						F.Intrinsic.Control.EndIf
+						F.ODBC.con!rstInv.Close
+						F.Intrinsic.Math.Mult(V.Local.fOrderQty,V.Local.sBOMSeq(6).Float,V.uGlobal.uShipComp(V.Local.iUB)!Qty_Needed)
+						'Getting quantity shipped by checking for the z bin for the sales order
+						F.Intrinsic.String.Right(V.Screen.SS_Form1!txtOrder.Text,5,V.Local.sZBin)
+						F.Intrinsic.String.Concat("Z",V.Local.sZBin,V.Local.sZBin)
+						F.Intrinsic.String.Concat("Select QUANTITY from V_ITEM_MASTER where PART = '",V.Local.sBOMSeq(2).Trim,"' and BIN = '",V.Local.sZBin,"'",V.Local.sSql)
+						F.ODBC.Connection!con.OpenLocalRecordsetRO("rst",V.Local.sSql)
+						F.Intrinsic.Control.If(V.ODBC.con!rst.EOF,=,True)
+							V.uGlobal.uShipComp(V.Local.iUB)!Qty_Shipped.Set(0)
+						F.Intrinsic.Control.Else
+							V.uGlobal.uShipComp(V.Local.iUB)!Qty_Shipped.Set(V.ODBC.con!rst.FieldValFloat!QUANTITY)
+						F.Intrinsic.Control.EndIf
+						F.ODBC.con!rst.Close
+						F.Intrinsic.Math.Sub(V.uGlobal.uShipComp(V.Local.iUB)!Qty_Needed,V.uGlobal.uShipComp(V.Local.iUB)!Qty_Shipped,V.uGlobal.uShipComp(V.Local.iUB)!Qty_Balance)
+						V.uGlobal.uShipComp(V.Local.iUB)!Ship_Qty.Set(0)
+					F.Intrinsic.Control.Else
+					 	F.ODBC.con!rst.Close
+					F.Intrinsic.Control.EndIf
+				F.Intrinsic.Control.Else
+					F.ODBC.con!rst.Close
+				F.Intrinsic.Control.EndIf
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.Next(V.Local.i)
+	F.Intrinsic.Control.Else
+		F.ODBC.con!rst.Close
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.Else
+	F.ODBC.con!rst.Close
+F.Intrinsic.Control.EndIf
+
+'Once UDT loaded, moving to grid
+F.Intrinsic.Control.If(V.uGlobal.uShipComp.UBound,>,-1)
+	Gui.SS_Form1.gsfgComp.LoadFromUDT("uGlobal.uShipComp","Part*!*Qty_Needed*!*Qty_Shipped*!*Qty_Balance*!*Ship_Qty",1)
+F.Intrinsic.Control.EndIf
+Gui.SS_Form1..Enabled(True)
+
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("GridLoad_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3365Ship_Component.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Ss_form1_unload)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.GridLoad.End
+
+
+program.sub.cmd_txtorder_click.start
+F.Intrinsic.Control.SetErrorHandler("cmd_txtorder_click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sSql.Declare(String)
+V.Local.sTitles.Declare(String)
+V.Local.sWidths.Declare(String)
+V.Local.sRet.Declare(String)
+
+V.Local.sSql.Set("Select ORDER_NO, CUSTOMER, DATE_ORDER, DATE_DUE, CUSTOMER_PO from V_ORDER_HEADER ORDER BY ORDER_NO")
+V.Local.sTitles.Set("Order Number*!*Customer*!*Date Ordered*!*Date Due*!*Customer PO")
+V.Local.sWidths.Set("1250*!*1000*!*1500*!*1500*!*1500")
+
+F.Intrinsic.String.Split(V.Local.sTitles,"*!*",V.Local.sTitles)
+F.Intrinsic.String.Split(V.Local.sWidths,"*!*",V.Local.sWidths)
+F.Intrinsic.UI.SetBrowserHotTypeAhead(True)
+F.Intrinsic.UI.Browser("Select Order","con",V.Local.sSql,V.Local.sTitles,V.Local.sWidths,5000,8000,V.Local.sRet)
+F.Intrinsic.Control.If(V.Local.sRet,<>,"***CANCEL***")
+	F.Intrinsic.String.Split(V.Local.sRet,"*!*",V.Local.sRet)
+	Gui.SS_Form1.txtOrder.Text(V.Local.sRet.Trim)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmd_txtorder_click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3365Ship_Component.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Ss_form1_unload)
+Function.Intrinsic.Control.EndIf
+
+program.sub.cmd_txtorder_click.end
+
+
+program.sub.cmd_txtline_click.start
+F.Intrinsic.Control.SetErrorHandler("cmd_txtline_click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sSql.Declare(String)
+V.Local.sTitles.Declare(String)
+V.Local.sWidths.Declare(String)
+V.Local.sRet.Declare(String)
+
+F.Intrinsic.Control.If(V.Screen.SS_Form1!txtOrder.Text,<>,"")
+	F.Intrinsic.String.Concat("Select RECORD_NO, PART, DESCRIPTION from V_ORDER_LINES where ORDER_NO = '",V.Screen.SS_Form1!txtOrder.Text,"' ORDER BY RECORD_NO",V.Local.sSql)
+	V.Local.sTitles.Set("Order Line*!*Part*!*Description")
+	V.Local.sWidths.Set("1000*!*2500*!*3250")
+
+	F.Intrinsic.String.Split(V.Local.sTitles,"*!*",V.Local.sTitles)
+	F.Intrinsic.String.Split(V.Local.sWidths,"*!*",V.Local.sWidths)
+	F.Intrinsic.UI.SetBrowserHotTypeAhead(True)
+	F.Intrinsic.UI.Browser("Select Order","con",V.Local.sSql,V.Local.sTitles,V.Local.sWidths,5000,8000,V.Local.sRet)
+	F.Intrinsic.Control.If(V.Local.sRet,<>,"***CANCEL***")
+		F.Intrinsic.String.Split(V.Local.sRet,"*!*",V.Local.sRet)
+		Gui.SS_Form1.txtLine.Text(V.Local.sRet.Trim)
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmd_txtline_click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3365Ship_Component.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Ss_form1_unload)
+Function.Intrinsic.Control.EndIf
+
+program.sub.cmd_txtline_click.end
+
+
+program.sub.cmdload_click.start
+F.Intrinsic.Control.SetErrorHandler("cmdload_click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+F.Intrinsic.Control.If(V.Screen.SS_Form1!txtOrder.Text,=,"")
+	 F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.Else
+	F.Intrinsic.Control.If(V.Screen.SS_Form1!txtLine.Text,=,"")
+		 F.Intrinsic.Control.ExitSub
+	F.Intrinsic.Control.Else
+		F.Intrinsic.Control.CallSub(Gridload)
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmdload_click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3365Ship_Component.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Ss_form1_unload)
+Function.Intrinsic.Control.EndIf
+
+program.sub.cmdload_click.end
+
+
+program.sub.cmdsave_click.start
+F.Intrinsic.Control.SetErrorHandler("cmdsave_click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.iRows.Declare(Long)
+V.Local.i.Declare(Long)
+V.Local.sRow.Declare(String)
+V.Local.bChk.Declare(Boolean)
+V.Local.sRowArray.Declare(String)
+V.Local.sSql.Declare(String)
+V.Local.sZBin.Declare(String)
+V.Local.sWrite.Declare(String)
+V.Local.sFile.Declare(String)
+V.Local.sFileFQP.Declare(String)
+V.Local.sCommand.Declare(String)
+V.Local.sUser.Declare(String)
+V.Local.sPartList.Declare(String)
+V.Local.sShipList.Declare(String)
+V.Local.sOrderList.Declare(String)
+V.Local.sBOList.Declare(String)
+V.Local.sRet.Declare(String)
+V.Local.sDescription.Declare(String)
+V.Local.fBOList.Declare(Float)
+
+Gui.SS_Form1.gsfgComp.Commit
+V.Local.iRows.Set(V.Screen.SS_Form1!gsfgComp.Rows)
+F.Intrinsic.Math.Sub(V.Local.iRows,1,V.Local.iRows)
+F.Intrinsic.Control.For(V.Local.i,1,V.Local.iRows,1)
+	F.Intrinsic.Control.If(V.Local.i,>,0)
+		Gui.SS_Form1.gsfgComp.ReadRow(V.Local.i,V.Local.sRow)
+		F.Intrinsic.String.Split(V.Local.sRow,"*!*",V.Local.sRowArray)
+		F.Intrinsic.Control.If(V.Local.sRowArray(4),<>,"")
+			F.Intrinsic.Control.If(V.Local.sRowArray(4),>,0)
+
+				F.Intrinsic.Math.IsNumeric(V.Local.sRowArray(4),V.Local.bChk)
+				F.Intrinsic.Control.If(V.Local.bChk,=,False)
+					F.Intrinsic.UI.Msgbox("Input must be numeric.","Numeric Value")
+					Gui.SS_Form1.gsfgComp.SetActiveCell(4,V.Local.i)
+					F.Intrinsic.Control.ExitSub
+				F.Intrinsic.Control.Else
+					F.Intrinsic.String.Concat("Select QTY_BIN from V_WIP_BIN where PART = '",V.Local.sRowArray(0).Trim,"' and BIN = 'SHPCMP'",V.Local.sSql)
+					F.ODBC.Connection!con.OpenLocalRecordsetRO("rst",V.Local.sSql)
+					F.Intrinsic.Control.If(V.ODBC.con!rst.EOF,=,True)
+						F.Intrinsic.UI.Msgbox("Not enough quantity to ship..","Ship Quantity")
+						Gui.SS_Form1.gsfgComp.SetActiveCell(4,V.Local.i)
+						F.ODBC.con!rst.Close
+						F.Intrinsic.Control.ExitSub
+					F.Intrinsic.Control.Else
+						F.Intrinsic.Control.If(V.Local.sRowArray(4),>,V.ODBC.con!rst.FieldValFloat!QTY_BIN)
+							F.Intrinsic.UI.Msgbox("Not enough quantity to ship..","Ship Quantity")
+							Gui.SS_Form1.gsfgComp.SetActiveCell(4,V.Local.i)
+							F.ODBC.con!rst.Close
+							F.Intrinsic.Control.ExitSub
+						F.Intrinsic.Control.Else
+							F.ODBC.con!rst.Close
+						F.Intrinsic.Control.EndIf
+					F.Intrinsic.Control.EndIf
+				F.Intrinsic.Control.EndIf
+				'Creating new ship bin
+				F.Intrinsic.String.Right(V.Screen.SS_Form1!txtOrder.Text,5,V.Local.sZBin)
+				F.Intrinsic.String.Concat("Z",V.Local.sZBin,V.Local.sZBin)
+				F.Intrinsic.String.Concat("Select * from BIN_MASTER where BIN = '",V.Local.sZBin,"'",V.Local.sSql)
+				F.ODBC.Connection!con.OpenLocalRecordsetRW("rst",V.Local.sSql)
+				F.Intrinsic.Control.If(V.ODBC.con!rst.EOF,=,True)
+					F.ODBC.con!rst.AddNew
+					F.ODBC.con!rst.Set!BIN(V.Local.sZBin)
+					F.ODBC.con!rst.Set!LOCATION("")
+					F.ODBC.con!rst.Set!BIN_DESCRIPTION("WIP BIN                      B")
+					F.ODBC.con!rst.Update
+				F.Intrinsic.Control.EndIf
+				F.ODBC.con!rst.Close
+				'Performing bin to bin transfer from SHPCMP to ship bin
+				F.Intrinsic.Control.If(V.Local.sRowArray(4).Float,>,0)
+					F.Intrinsic.Control.If(V.Local.sPartList,=,"")
+						V.Local.sPartList.Set(V.Local.sRowArray(0).Trim)
+						V.Local.sShipList.Set(V.Local.sRowArray(4).Float)
+						V.Local.sOrderList.Set(V.Local.sRowArray(1).Float)
+						F.Intrinsic.Math.Add(V.Local.sRowArray(2).Float,V.Local.sRowArray(4).Float,V.Local.fBOList)
+						F.Intrinsic.Math.Sub(V.Local.sRowArray(1).Float,V.Local.fBOList,V.Local.fBOList)
+						V.Local.sBOList.Set(V.Local.fBOList)
+					F.Intrinsic.Control.Else
+						F.Intrinsic.String.Concat(V.Local.sPartList,"*!*",V.Local.sRowArray(0).Trim,V.Local.sPartList)
+						F.Intrinsic.String.Concat(V.Local.sShipList,"*!*",V.Local.sRowArray(4).Float,V.Local.sShipList)
+						F.Intrinsic.String.Concat(V.Local.sOrderList,"*!*",V.Local.sRowArray(1).Float,V.Local.sOrderList)
+						F.Intrinsic.Math.Add(V.Local.sRowArray(2).Float,V.Local.sRowArray(4).Float,V.Local.fBOList)
+						F.Intrinsic.Math.Sub(V.Local.sRowArray(1).Float,V.Local.fBOList,V.Local.fBOList)
+						F.Intrinsic.String.Concat(V.Local.sBOList,"*!*",V.Local.fBOList,V.Local.sBOList)
+					F.Intrinsic.Control.EndIf
+					F.Intrinsic.Control.If(V.Local.sWrite,=,"")
+						F.Intrinsic.String.Concat(V.Local.sRowArray(0).Trim,",,",V.Local.sRowArray(4).Float,",SHPCMP,",V.Local.sZBin,",,,,,",V.Local.sWrite)
+					F.Intrinsic.Control.Else
+						F.Intrinsic.String.Concat(V.Local.sWrite,V.Ambient.NewLine,V.Local.sRowArray(0).Trim,",,",V.Local.sRowArray(4).Float,",SHPCMP,",V.Local.sZBin,",,,,,",V.Local.sWrite)
+					F.Intrinsic.Control.EndIf
+				F.Intrinsic.Control.EndIf
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.Next(V.Local.i)
+
+F.Intrinsic.String.RPad(V.Caller.User.Trim,"0",8,V.Local.sUser)
+F.Intrinsic.String.Concat("T",V.Caller.CompanyCode,"GAB",V.Local.sUser,V.Caller.Terminal,V.Local.sFile)
+F.Intrinsic.String.Concat(V.Caller.FilesDir,"\",V.Local.sFile,V.Local.sFileFQP)
+F.Intrinsic.String.Concat(V.Local.sFile,"S",V.Local.sFile)
+F.Intrinsic.File.String2File(V.Local.sFileFQP,V.Local.sWrite)
+F.Intrinsic.String.Concat(V.Ambient.DblQuote,V.Local.sFile,V.Ambient.DblQuote,V.Local.sCommand)
+F.Intrinsic.Control.DoEvents
+
+F.Intrinsic.Task.LaunchGSSSync("Lot054up","-c",V.Local.sCommand)
+
+F.Intrinsic.Control.If(V.Local.sPartList,<>,"")
+	F.Intrinsic.String.Concat("Delete GCG_3365Packing_Sold_To where Terminal = '",V.Caller.Terminal,"'",V.Local.sSql)
+	F.ODBC.Connection!con.Execute(V.Local.sSql)
+	F.Intrinsic.String.Concat("Delete GCG_3365Packing_Ship_To where Terminal = '",V.Caller.Terminal,"'",V.Local.sSql)
+	F.ODBC.Connection!con.Execute(V.Local.sSql)
+	F.Intrinsic.String.Concat("Delete GCG_3365Packing_Lines where Terminal = '",V.Caller.Terminal,"'",V.Local.sSql)
+	F.ODBC.Connection!con.Execute(V.Local.sSql)
+	'Generating data to create a packing list.
+	'Bill To
+	F.Intrinsic.String.Concat("Select * from V_ORDER_BILL_TO where ORDER_NO = '",V.Screen.SS_Form1!txtOrder.Text,"'",V.Local.sSql)
+	F.ODBC.Connection!con.OpenLocalRecordsetRO("rst",V.Local.sSql)
+	V.Local.sSql.Set("Select * From GCG_3365Packing_Sold_To")
+	F.ODBC.Connection!con.OpenLocalRecordsetRW("rstA",V.Local.sSql)
+	F.ODBC.con!rstA.AddNew
+	F.ODBC.con!rstA.Set!Terminal(V.Caller.Terminal)
+	F.ODBC.con!rstA.Set!Order_Number(V.Screen.SS_Form1!txtOrder.Text)
+	F.ODBC.con!rstA.Set!Customer_Name(V.ODBC.con!rst.FieldValTrim!NAME_CUSTOMER)
+	F.ODBC.con!rstA.Set!Address_1(V.ODBC.con!rst.FieldValTrim!ADDRESS_1)
+	F.ODBC.con!rstA.Set!Address_2(V.ODBC.con!rst.FieldValTrim!ADDRESS_2)
+	F.ODBC.con!rstA.Set!Address_3(V.ODBC.con!rst.FieldValTrim!ADDRESS_3)
+	F.ODBC.con!rstA.Set!Address_4(V.ODBC.con!rst.FieldValTrim!ADDRESS_4)
+	F.ODBC.con!rstA.Set!Address_5(V.ODBC.con!rst.FieldValTrim!ADDRESS_5)
+	F.ODBC.con!rstA.Set!City(V.ODBC.con!rst.FieldValTrim!CITY)
+	F.ODBC.con!rstA.Set!State(V.ODBC.con!rst.FieldValTrim!STATE)
+	F.ODBC.con!rstA.Set!Zip(V.ODBC.con!rst.FieldValTrim!ZIP_CODE)
+	F.ODBC.con!rstA.Set!Country(V.ODBC.con!rst.FieldValTrim!COUNTRY)
+	F.ODBC.con!rstA.Update
+	F.ODBC.con!rstA.Close
+	F.ODBC.con!rst.Close
+
+	'Ship To
+	F.Intrinsic.String.Concat("Select * from V_ORDER_SHIP_TO where ORDER_NO = '",V.Screen.SS_Form1!txtOrder.Text,"'",V.Local.sSql)
+	F.ODBC.Connection!con.OpenLocalRecordsetRO("rst",V.Local.sSql)
+	V.Local.sSql.Set("Select * From GCG_3365Packing_Ship_To")
+	F.ODBC.Connection!con.OpenLocalRecordsetRW("rstA",V.Local.sSql)
+	F.ODBC.con!rstA.AddNew
+	F.ODBC.con!rstA.Set!Terminal(V.Caller.Terminal)
+	F.ODBC.con!rstA.Set!Order_Number(V.Screen.SS_Form1!txtOrder.Text)
+	F.ODBC.con!rstA.Set!Customer_Name(V.ODBC.con!rst.FieldValTrim!NAME_CUSTOMER_SHIP)
+	F.ODBC.con!rstA.Set!Address_1(V.ODBC.con!rst.FieldValTrim!ADDRESS_1_SHIP)
+	F.ODBC.con!rstA.Set!Address_2(V.ODBC.con!rst.FieldValTrim!ADDRESS_2_SHIP)
+	F.ODBC.con!rstA.Set!Address_3(V.ODBC.con!rst.FieldValTrim!ADDRESS_3_SHIP)
+	F.ODBC.con!rstA.Set!Address_4(V.ODBC.con!rst.FieldValTrim!ADDRESS_4_SHIP)
+	F.ODBC.con!rstA.Set!Address_5(V.ODBC.con!rst.FieldValTrim!ADDRESS_5_SHIP)
+	F.ODBC.con!rstA.Set!City(V.ODBC.con!rst.FieldValTrim!CITY_SHIP)
+	F.ODBC.con!rstA.Set!State(V.ODBC.con!rst.FieldValTrim!STATE_SHIP)
+	F.ODBC.con!rstA.Set!Zip(V.ODBC.con!rst.FieldValTrim!CODE_ZIP_SHIP)
+	F.ODBC.con!rstA.Set!Country(V.ODBC.con!rst.FieldValTrim!COUNTRY_SHIP)
+	F.ODBC.con!rstA.Update
+	F.ODBC.con!rstA.Close
+	F.ODBC.con!rst.Close
+
+	'Lines
+	F.Intrinsic.String.Split(V.Local.sPartList,"*!*",V.Local.sPartList)
+	F.Intrinsic.String.Split(V.Local.sShipList,"*!*",V.Local.sShipList)
+	F.Intrinsic.String.Split(V.Local.sOrderList,"*!*",V.Local.sOrderList)
+	F.Intrinsic.String.Split(V.Local.sBOList,"*!*",V.Local.sBOList)
+	V.Local.sSql.Set("Select * From GCG_3365Packing_Lines")
+	F.ODBC.Connection!con.OpenLocalRecordsetRW("rstA",V.Local.sSql)
+	F.Intrinsic.Control.For(V.Local.i,V.Local.sPartList.LBound,V.Local.sPartList.UBound,1)
+		F.Intrinsic.Variable.UDTSeek(V.uGlobal.uShipComp!Part,V.Local.sPartList(V.Local.i).Trim,0,V.Local.sRet)
+		F.Intrinsic.Control.If(V.Local.sRet,=,"")
+			V.Local.sDescription.Set("")
+		F.Intrinsic.Control.Else
+			F.Intrinsic.String.Split(V.Local.sRet,"*!*",V.Local.sRet)
+			V.Local.sDescription.Set(V.uGlobal.uShipComp(v.Local.sRet(0).Long)!Description)
+		F.Intrinsic.Control.EndIf
+		F.ODBC.con!rstA.AddNew
+		F.ODBC.con!rstA.Set!Terminal(V.Caller.Terminal)
+		F.ODBC.con!rstA.Set!Order_Number(V.Screen.SS_Form1!txtOrder.Text)
+		F.ODBC.con!rstA.Set!Part(V.Local.sPartList(V.Local.i))
+		F.ODBC.con!rstA.Set!Description(V.Local.sDescription)
+		F.ODBC.con!rstA.Set!UM("EA")
+		F.ODBC.con!rstA.Set!Quantity_Needed(V.Local.sOrderList(V.Local.i).Float)
+		F.ODBC.con!rstA.Set!Quantity_Back_Order(V.Local.sBOList(V.Local.i).Float)
+		F.ODBC.con!rstA.Set!Quantity_Shipped(V.Local.sShipList(V.Local.i).Float)
+		F.ODBC.con!rstA.Update
+	F.Intrinsic.Control.Next(V.Local.i)
+	F.ODBC.con!rstA.Close
+
+	F.Intrinsic.Control.CallSub(Callbi)
+	F.Intrinsic.Control.CallSub(Cmdload_click)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmdsave_click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3365Ship_Component.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Ss_form1_unload)
+Function.Intrinsic.Control.EndIf
+
+
+program.sub.cmdsave_click.end
+
+
+Program.Sub.GridClear.Start
+F.Intrinsic.Control.SetErrorHandler("GridClear_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+Gui.SS_Form1.gsfgComp.Rows(1)
+F.Intrinsic.Control.CallSub(Gridtitle)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("GridClear_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3365Ship_Component.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Ss_form1_unload)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.GridClear.End
+
+
+Program.Sub.CallBI.Start
+F.Intrinsic.Control.SetErrorHandler("CallBI_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sParam.Declare(String)
+V.Local.sParamVal.Declare(String)
+V.Local.sDate.Declare(String)
+V.Local.iBI.Declare(Long)
+
+V.Local.sParam.Set("Terminal")
+V.Local.sParamVal.Set(V.Caller.Terminal)
+F.Global.BI.GetIDFromName("GCG_3365Packing_List.rpt",V.Local.iBI)
+F.Global.BI.PrintReport(V.Local.iBI,0,V.Local.sParam,V.Local.sParamVal,"",False)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("CallBI_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3365Ship_Component.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Ss_form1_unload)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.CallBI.End
+
+
+Program.Sub.Comments.Start
+${$0$}$GCG_Ship_Component$}$SUPERVSR$}$7/31/2012
+${$3$}$0$}$$}$-1$}$-1$}$$}$1/1/1900$}$River Steel
+Program.Sub.Comments.End
+Program.Sub.ScreenSS.Start
+SS_Form1{{CAPTION::BOM Shipping Components
+SS_Form1.CTRL{{NAME::txtOrder\\TYPE::2\\CAPTION::Sales Order\\GROUP::1\\BROWSER::1\\SIZE::1
+SS_Form1.CTRL{{NAME::txtLine\\TYPE::2\\CAPTION::Sales Order Line\\GROUP::1\\BROWSER::1\\SIZE::1
+
+Program.Sub.ScreenSS.End
+
