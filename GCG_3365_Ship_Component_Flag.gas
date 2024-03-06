@@ -1,0 +1,114 @@
+Program.Sub.ScreenSU.Start
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Program.Sub.Preflight.End
+
+
+Program.Sub.Main.Start
+F.ODBC.Connection!con.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+F.Intrinsic.Control.SelectCase(V.Caller.Hook)
+	F.Intrinsic.Control.Case(16475)
+		F.Intrinsic.Control.CallSub(Flagcomp)
+	F.Intrinsic.Control.Case(16385)
+		F.Intrinsic.Control.CallSub(Populate)
+F.Intrinsic.Control.EndSelect
+F.Intrinsic.Control.CallSub(Unload)
+
+Program.Sub.Main.End
+
+
+Program.Sub.FlagComp.Start
+F.Intrinsic.Control.SetErrorHandler("FlagComp_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sSql.Declare(String)
+V.Local.sPart.Declare(String)
+
+F.Intrinsic.String.GSSPartString(V.Passed.000002.Trim,V.Passed.000074.Trim,V.Local.sPart)
+F.Intrinsic.String.Concat("Select * from GCG_3365Ship_Comp_Flag where BOM_Parent = '",V.Passed.009000.Trim,"' and BOM_Part = '",V.Local.sPart,"'",V.Local.sSql)
+F.ODBC.Connection!con.OpenLocalRecordsetRW("rst",V.Local.sSql)
+F.Intrinsic.Control.If(V.ODBC.con!rst.EOF,=,True)
+	F.ODBC.con!rst.AddNew
+	F.ODBC.con!rst.Set!BOM_Parent(V.Passed.009000.Trim)
+	F.ODBC.con!rst.Set!BOM_Part(V.Local.sPart)
+	F.ODBC.con!rst.Set!Comp_Flag(1)
+	F.ODBC.con!rst.Update
+	V.Passed.000030.Set("Ship Comp")
+F.Intrinsic.Control.Else
+	F.Intrinsic.Control.If(V.ODBC.con!rst.FieldVal!Comp_Flag,=,True)
+		F.ODBC.con!rst.Set!Comp_Flag(0)
+		F.ODBC.con!rst.Update
+		V.Passed.000030.Set("Non-Ship")
+	F.Intrinsic.Control.Else
+		F.ODBC.con!rst.Set!Comp_Flag(1)
+		F.ODBC.con!rst.Update
+		V.Passed.000030.Set("Ship Comp")
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndIf
+F.ODBC.con!rst.Close
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("FlagComp_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3365Ship_Component_Flag.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.FlagComp.End
+
+
+Program.Sub.Unload.Start
+F.ODBC.Connection!con.Close
+F.Intrinsic.Control.End
+
+Program.Sub.Unload.End
+
+
+Program.Sub.Populate.Start
+F.Intrinsic.Control.SetErrorHandler("Populate_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sSql.Declare(String)
+V.Local.sPart.Declare(String)
+
+F.Intrinsic.String.GSSPartString(V.Passed.000002.Trim,V.Passed.000074.Trim,V.Local.sPart)
+F.Intrinsic.String.Concat("Select * from GCG_3365Ship_Comp_Flag where BOM_Parent = '",V.Passed.009000.Trim,"' and BOM_Part = '",V.Local.sPart,"'",V.Local.sSql)
+F.ODBC.Connection!con.OpenLocalRecordsetRO("rst",V.Local.sSql)
+F.Intrinsic.Control.If(V.ODBC.con!rst.EOF,=,True)
+	V.Passed.000030.Set("Non-Ship")
+F.Intrinsic.Control.Else
+	F.Intrinsic.Control.If(V.ODBC.con!rst.FieldVal!Comp_Flag,=,True)
+		V.Passed.000030.Set("Ship Comp")
+	F.Intrinsic.Control.Else
+		V.Passed.000030.Set("Non-Ship")
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndIf
+F.ODBC.con!rst.Close
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Populate_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3365Ship_Component_Flag.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.Populate.End
+
+
+Program.Sub.Comments.Start
+${$0$}$GCG_Ship_Component_Flag$}$SUPERVSR$}$7/31/2012
+${$1$}$$}$$}$1$}$16385$}$BMS0020E-POPULATE-HOOK (BOM LINES MAINT)$}$7/31/2012 12:53:59 PM$}$(Program: BM0020GI; Screen: BMS0020E)
+
+${$1$}$$}$$}$0$}$16475$}$BMS0020E-SCRIPT-1-HOOK(BOM LINE ITEM)$}$7/31/2012 11:54:48 AM$}$(Program: BM0020GI; Screen: BMS0020E)
+
+${$3$}$0$}$$}$-1$}$-1$}$$}$1/1/1900$}$River Steel
+Program.Sub.Comments.End
+
